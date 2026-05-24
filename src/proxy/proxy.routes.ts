@@ -32,6 +32,7 @@ const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
       },
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
+        proxyReq.removeHeader("origin");
 
         // Reenvía el user payload al microservicio como cabecera (opcional)
         const typedReq = req as import("express").Request;
