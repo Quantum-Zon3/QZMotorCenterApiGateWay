@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createProxyMiddleware } from "http-proxy-middleware";
+import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import { env } from "../config/env";
 import { verifyJwt } from "../middleware/auth.middleware";
 import { authRateLimiter } from "../middleware/rateLimiter.middleware";
@@ -31,6 +31,8 @@ const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
         }
       },
       proxyReq: (proxyReq, req) => {
+        fixRequestBody(proxyReq, req);
+
         // Reenvía el user payload al microservicio como cabecera (opcional)
         const typedReq = req as import("express").Request;
         if (typedReq.user) {
@@ -53,6 +55,12 @@ const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
  * POST /auth/login
  * Reenvía al microservicio Auth. Limitado con authRateLimiter (anti brute-force).
  */
+router.post(
+  "/auth/register",
+  authRateLimiter,
+  makeProxy(env.authApiUrl, { "^/auth/register": "/qzwork_hub/auth" })
+);
+
 router.post(
   "/auth/login",
   authRateLimiter,
@@ -103,6 +111,13 @@ router.use("/api/motorcycles", verifyJwt, makeProxy(env.motorcyclesApiUrl));
  * También expone /api/health en este microservicio
  */
 router.use("/api/electrobikes", verifyJwt, makeProxy(env.electrobikesApiUrl));
+
+/**
+ * /api/marcas/**
+ * Marcas del catálogo ElectroBike. Se conserva este path porque el
+ * microservicio lo expone bajo /api/marcas.
+ */
+router.use("/api/marcas", verifyJwt, makeProxy(env.electrobikesApiUrl));
 
 /**
  * /api/health (electrobikes health-check)

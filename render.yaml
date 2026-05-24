@@ -9,3 +9,21 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: CORS_ORIGIN
+        value: https://qz-motor-center-frontend.onrender.com,http://localhost:5173
+      - key: MOTORCYCLES_API_URL
+        value: https://qzmotorcenter-motorcycles-api.onrender.com
+      - key: ELECTROBIKES_API_URL
+        value: https://qzmotorcenter-electrobike-api.onrender.com
+      - key: REPORTS_API_URL
+        value: https://qzmotorcenterreports-1.onrender.com
+      - key: AUTH_API_URL
+        value: http://localhost:8081
+      - key: CARS_API_URL
+        value: http://localhost:3001
+      - key: SCOOTERS_API_URL
+        value: http://localhost:3003
+      - key: AI_API_URL
+        value: http://localhost:8000
+      - key: SERVERLESS_API_URL
+        value: http://localhost:3004

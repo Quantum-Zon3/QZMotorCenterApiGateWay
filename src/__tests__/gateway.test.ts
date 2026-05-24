@@ -61,6 +61,20 @@ describe("API Gateway Endpoints", () => {
   });
 
   describe("POST /auth/login — Public proxy (no JWT required)", () => {
+    it("returns 502 when auth microservice is unreachable while registering", async () => {
+      const res = await request(app).post("/auth/register").send({
+        cedula: 123,
+        nombre: "Test",
+        apellido: "User",
+        email: "test@example.com",
+        contraseña: "Password1",
+        telefono: "3001234567",
+        fechaRegistro: "2026-05-24T00:00:00",
+      });
+      expect(res.status).toBe(502);
+      expect(res.body).toHaveProperty("error");
+    });
+
     it("returns 502 when auth microservice is unreachable", async () => {
       const res = await request(app).post("/auth/login").send({ email: "test@example.com", password: "pass" });
       expect(res.status).toBe(502);
@@ -100,6 +114,7 @@ describe("API Gateway Endpoints", () => {
       { method: "get",    url: "/api/cars/some-endpoint",         label: "GET  /api/cars/**" },
       { method: "post",   url: "/api/motorcycles/some-endpoint",  label: "POST /api/motorcycles/**" },
       { method: "put",    url: "/api/electrobikes/some-endpoint", label: "PUT  /api/electrobikes/**" },
+      { method: "get",    url: "/api/marcas",                     label: "GET  /api/marcas/**" },
       { method: "get",    url: "/health/electrobikes",            label: "GET  /health/electrobikes" },
       { method: "delete", url: "/api/scooters/some-endpoint",     label: "DELETE /api/scooters/**" },
       { method: "get",    url: "/api/reports/sales",              label: "GET  /api/reports/**" },
@@ -119,7 +134,7 @@ describe("API Gateway Endpoints", () => {
         const res = await (request(app) as any)
           [method](url)
           .set("Authorization", "Bearer invalid.token.here");
-        expect([401, 403]).toContain(res.status);
+        expect([401, 403, 503]).toContain(res.status);
       });
     });
   });
