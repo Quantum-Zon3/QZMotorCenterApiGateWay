@@ -13,6 +13,9 @@ const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
     target,
     changeOrigin: true,
     pathRewrite,
+    // Render free tier: cold starts pueden tardar hasta 60 s
+    proxyTimeout: 65000,
+    timeout: 65000,
     on: {
       error: (err, req, res) => {
         logger.error("Error de proxy hacia microservicio", {
@@ -32,7 +35,6 @@ const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
       },
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
-        proxyReq.removeHeader("origin");
 
         // Reenvía el user payload al microservicio como cabecera (opcional)
         const typedReq = req as import("express").Request;
