@@ -40,13 +40,13 @@ const makeProxy = (
         }
       },
       proxyReq: (proxyReq, req) => {
-        fixRequestBody(proxyReq, req);
-
         // Reenvía el user payload al microservicio como cabecera (opcional)
         const typedReq = req as import("express").Request;
         if (typedReq.user) {
           proxyReq.setHeader("X-Gateway-User", JSON.stringify(typedReq.user));
         }
+        fixRequestBody(proxyReq, req);
+
         logger.debug("Proxy request", {
           method: typedReq.method,
           originalUrl: typedReq.originalUrl,
