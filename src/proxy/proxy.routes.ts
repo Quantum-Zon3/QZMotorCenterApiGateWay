@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createProxyMiddleware } from "http-proxy-middleware";
+import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import { env } from "../config/env";
 import { verifyJwt } from "../middleware/auth.middleware";
 import { authRateLimiter } from "../middleware/rateLimiter.middleware";
@@ -31,6 +31,8 @@ const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
         }
       },
       proxyReq: (proxyReq, req) => {
+        fixRequestBody(proxyReq, req);
+
         // Reenvía el user payload al microservicio como cabecera (opcional)
         const typedReq = req as import("express").Request;
         if (typedReq.user) {
@@ -57,6 +59,16 @@ router.post(
   "/auth/login",
   authRateLimiter,
   makeProxy(env.authApiUrl, { "^/auth/login": "/qzwork_hub/auth/login" })
+);
+
+/**
+ * POST /auth/register
+ * Crea una cuenta en el microservicio Auth. Sin JWT, con rate limit de auth.
+ */
+router.post(
+  "/auth/register",
+  authRateLimiter,
+  makeProxy(env.authApiUrl, { "^/auth/register": "/qzwork_hub/auth/register" })
 );
 
 /**

@@ -2,6 +2,7 @@
 // This prevents real network calls during tests: the proxy immediately
 // calls our error handler instead of connecting to real microservices.
 jest.mock("http-proxy-middleware", () => ({
+  fixRequestBody: jest.fn(),
   createProxyMiddleware: (opts: any) => {
     return (
       req: import("express").Request,
@@ -19,6 +20,18 @@ jest.mock("http-proxy-middleware", () => ({
         });
       }
     };
+  },
+}));
+
+jest.mock("axios", () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn().mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 401 },
+      message: "mock invalid token",
+    }),
+    isAxiosError: jest.fn((error) => Boolean(error?.isAxiosError)),
   },
 }));
 
@@ -63,6 +76,17 @@ describe("API Gateway Endpoints", () => {
   describe("POST /auth/login — Public proxy (no JWT required)", () => {
     it("returns 502 when auth microservice is unreachable", async () => {
       const res = await request(app).post("/auth/login").send({ email: "test@example.com", password: "pass" });
+      expect(res.status).toBe(502);
+      expect(res.body).toHaveProperty("error");
+      expect(res.body.error).toContain("El microservicio no está disponible");
+    });
+  });
+
+  describe("POST /auth/register — Public proxy (no JWT required)", () => {
+    it("returns 502 when auth microservice is unreachable", async () => {
+      const res = await request(app)
+        .post("/auth/register")
+        .send({ email: "test@example.com", password: "pass" });
       expect(res.status).toBe(502);
       expect(res.body).toHaveProperty("error");
       expect(res.body.error).toContain("El microservicio no está disponible");
