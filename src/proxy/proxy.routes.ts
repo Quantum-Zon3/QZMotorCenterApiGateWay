@@ -8,7 +8,13 @@ import { logger } from "../middleware/logger.middleware";
 const router = Router();
 
 // ─── Helper: crea un proxy apuntando a un microservicio ──────────────────────
-const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
+const preserveMountPath = (mountPath: string) => (path: string) =>
+  `${mountPath}${path === "/" ? "" : path}`;
+
+const makeProxy = (
+  target: string,
+  pathRewrite?: Record<string, string> | ((path: string) => string)
+) =>
   createProxyMiddleware({
     target,
     changeOrigin: true,
@@ -100,27 +106,35 @@ router.post(
  * /api/cars/**
  * CRUD de automóviles — Node + Express + PostgreSQL
  */
-router.use("/api/cars", verifyJwt, makeProxy(env.carsApiUrl));
+router.use("/api/cars", verifyJwt, makeProxy(env.carsApiUrl, preserveMountPath("/api/cars")));
 
 /**
  * /api/motorcycles/**
  * CRUD de motocicletas — Flask + SQLAlchemy + MySQL
  */
-router.use("/api/motorcycles", verifyJwt, makeProxy(env.motorcyclesApiUrl));
+router.use(
+  "/api/motorcycles",
+  verifyJwt,
+  makeProxy(env.motorcyclesApiUrl, preserveMountPath("/api/motorcycles"))
+);
 
 /**
  * /api/electrobikes/**
  * Catálogo de bicicletas eléctricas — Node + Sequelize
  * También expone /api/health en este microservicio
  */
-router.use("/api/electrobikes", verifyJwt, makeProxy(env.electrobikesApiUrl));
+router.use(
+  "/api/electrobikes",
+  verifyJwt,
+  makeProxy(env.electrobikesApiUrl, preserveMountPath("/api/electrobikes"))
+);
 
 /**
  * /api/marcas/**
  * Marcas del catálogo ElectroBike. Se conserva este path porque el
  * microservicio lo expone bajo /api/marcas.
  */
-router.use("/api/marcas", verifyJwt, makeProxy(env.electrobikesApiUrl));
+router.use("/api/marcas", verifyJwt, makeProxy(env.electrobikesApiUrl, preserveMountPath("/api/marcas")));
 
 /**
  * /api/health (electrobikes health-check)
@@ -138,14 +152,14 @@ router.get(
  * /api/scooters/**
  * Microservicio de scooters — Node + Express + MySQL
  */
-router.use("/api/scooters", verifyJwt, makeProxy(env.scootersApiUrl));
+router.use("/api/scooters", verifyJwt, makeProxy(env.scootersApiUrl, preserveMountPath("/api/scooters")));
 
 /**
  * /api/reports/**
  * Reportes de ventas — Node + Express + MongoDB
  * Health-check en /health del microservicio
  */
-router.use("/api/reports", verifyJwt, makeProxy(env.reportsApiUrl));
+router.use("/api/reports", verifyJwt, makeProxy(env.reportsApiUrl, preserveMountPath("/api/reports")));
 
 router.get(
   "/health/reports",
@@ -158,7 +172,7 @@ router.get(
  * Asistente de IA — FastAPI + PostgreSQL
  * Health-check en /health del microservicio
  */
-router.use("/api/v1", verifyJwt, makeProxy(env.aiApiUrl));
+router.use("/api/v1", verifyJwt, makeProxy(env.aiApiUrl, preserveMountPath("/api/v1")));
 
 router.get(
   "/health/ai",
@@ -170,6 +184,10 @@ router.get(
  * /api/enviarCorreo/**
  * Automatizaciones de correo serverless — Node + SendGrid
  */
-router.use("/api/enviarCorreo", verifyJwt, makeProxy(env.serverlessApiUrl));
+router.use(
+  "/api/enviarCorreo",
+  verifyJwt,
+  makeProxy(env.serverlessApiUrl, preserveMountPath("/api/enviarCorreo"))
+);
 
 export default router;
