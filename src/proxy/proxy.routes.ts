@@ -32,6 +32,7 @@ const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
       },
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
+        proxyReq.removeHeader("origin");
 
         // Reenvía el user payload al microservicio como cabecera (opcional)
         const typedReq = req as import("express").Request;
@@ -58,13 +59,27 @@ const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
 router.post(
   "/auth/register",
   authRateLimiter,
-  makeProxy(env.authApiUrl, { "^/auth/register": "/qzwork_hub/auth" })
+  makeProxy(env.authApiUrl, { "^/auth/register": "/qzMotorCenter/auth" })
+);
+
+router.post(
+  "/qzMotorCenter/auth",
+  authRateLimiter,
+  makeProxy(env.authApiUrl, { "^/qzMotorCenter/auth$": "/qzMotorCenter/auth" })
 );
 
 router.post(
   "/auth/login",
   authRateLimiter,
-  makeProxy(env.authApiUrl, { "^/auth/login": "/qzwork_hub/auth/login" })
+  makeProxy(env.authApiUrl, { "^/auth/login": "/qzMotorCenter/auth/login" })
+);
+
+router.post(
+  "/qzMotorCenter/auth/login",
+  authRateLimiter,
+  makeProxy(env.authApiUrl, {
+    "^/qzMotorCenter/auth/login": "/qzMotorCenter/auth/login",
+  })
 );
 
 /**
@@ -75,7 +90,15 @@ router.post(
   "/auth/refresh-token",
   authRateLimiter,
   makeProxy(env.authApiUrl, {
-    "^/auth/refresh-token": "/qzwork_hub/auth/refresh-token",
+    "^/auth/refresh-token": "/qzMotorCenter/auth/refresh-token",
+  })
+);
+
+router.post(
+  "/qzMotorCenter/auth/refresh-token",
+  authRateLimiter,
+  makeProxy(env.authApiUrl, {
+    "^/qzMotorCenter/auth/refresh-token": "/qzMotorCenter/auth/refresh-token",
   })
 );
 
@@ -90,7 +113,15 @@ router.post(
 router.post(
   "/auth/logout",
   verifyJwt,
-  makeProxy(env.authApiUrl, { "^/auth/logout": "/qzwork_hub/auth/logout" })
+  makeProxy(env.authApiUrl, { "^/auth/logout": "/qzMotorCenter/auth/logout" })
+);
+
+router.post(
+  "/qzMotorCenter/auth/logout",
+  verifyJwt,
+  makeProxy(env.authApiUrl, {
+    "^/qzMotorCenter/auth/logout": "/qzMotorCenter/auth/logout",
+  })
 );
 
 /**

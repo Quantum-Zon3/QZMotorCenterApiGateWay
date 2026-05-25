@@ -37,7 +37,7 @@ export const verifyJwt = async (
   try {
     // Llama al endpoint de validación del microservicio Auth
     const { data } = await axios.get(
-      `${env.authApiUrl}/qzwork_hub/auth/validate`,
+      `${env.authApiUrl}/qzMotorCenter/auth/validate`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
