@@ -56,15 +56,15 @@ const makeProxy = (target: string, pathRewrite?: Record<string, string>) =>
  * Reenvía al microservicio Auth. Limitado con authRateLimiter (anti brute-force).
  */
 router.post(
-  "/auth/register",
+  "/qzMotorCenter/auth",
   authRateLimiter,
-  makeProxy(env.authApiUrl, { "^/auth/register": "/qzwork_hub/auth" })
+  makeProxy(env.authApiUrl, { "^/qzMotorCenter/auth": "/qzMotorCenter/auth" })
 );
 
 router.post(
-  "/auth/login",
+  "/qzMotorCenter/auth/login",
   authRateLimiter,
-  makeProxy(env.authApiUrl, { "^/auth/login": "/qzwork_hub/auth/login" })
+  makeProxy(env.authApiUrl, { "^/qzMotorCenter/auth/login": "/qzMotorCenter/auth/login" })
 );
 
 /**
@@ -72,10 +72,10 @@ router.post(
  * Renueva el accessToken usando el refreshToken. Sin JWT, con rate limit de auth.
  */
 router.post(
-  "/auth/refresh-token",
+  "/qzMotorCenter/auth/refresh-token",
   authRateLimiter,
   makeProxy(env.authApiUrl, {
-    "^/auth/refresh-token": "/qzwork_hub/auth/refresh-token",
+    "^/qzMotorCenter/auth/refresh-token": "/qzMotorCenter/auth/refresh-token",
   })
 );
 
@@ -88,9 +88,9 @@ router.post(
  * Revoca la sesión. Requiere JWT.
  */
 router.post(
-  "/auth/logout",
+  "/qzMotorCenter/auth/logout",
   verifyJwt,
-  makeProxy(env.authApiUrl, { "^/auth/logout": "/qzwork_hub/auth/logout" })
+  makeProxy(env.authApiUrl, { "^/qzMotorCenter/auth/logout": "/qzMotorCenter/auth/logout" })
 );
 
 /**
